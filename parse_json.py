@@ -44,6 +44,49 @@ def show_skelet(image, coords, skeleton):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+# вырезать из датасета все данные с неразмеченными хвостами и носом
+def create_file_without_unmarked(json_data):
+    counter = 0
+    reduced = 0
+    for index in range(len(json_data['annotations'])):
+        index -= reduced
+        x_coord_nose = json_data['annotations'][index]['keypoints'][6]
+        x_coord_tail = json_data['annotations'][index]['keypoints'][-7]
+        width = json_data['annotations'][index]['bbox'][2]
+        heigth = json_data['annotations'][index]['bbox'][3]
+        id = json_data['annotations'][index]['id']
+        if x_coord_nose == 0 or x_coord_tail == 0:
+            counter += 1
+            del json_data['annotations'][index]
+            del json_data['images'][index]
+            reduced += 1
+    print('вырезано фоток:', counter)
+    print('осталось фоток:', len(json_data['annotations']), len(json_data['images']))
+    # сохранить в новый файл
+    with open('marked_data.json', 'w') as outfile:
+        json.dump(json_data, outfile)
+
+# определить сторону тигра по дальности расположения носа от хвоста относительно ширины фото (больше 30%)
+def determine_side(json_path):
+    with open(json_path) as f:
+        json_data = json.load(f)
+    for index in range(len(json_data['annotations'])):
+        x_coord_nose = json_data['annotations'][index]['keypoints'][6]
+        x_coord_tail = json_data['annotations'][index]['keypoints'][-6]
+        width = json_data['annotations'][index]['bbox'][2]
+        # heigth = json_data['annotations'][index]['bbox'][3]
+        # id = json_data['annotations'][index]['id']
+        print(x_coord_nose - x_coord_tail, width)
+        if (x_coord_nose - x_coord_tail > 0) and ((width - abs(x_coord_nose - x_coord_tail)) / width < 0.7):
+            json_data['annotations'][index].update(side='right')
+        elif (x_coord_nose - x_coord_tail < 0) and ((width - abs(x_coord_nose - x_coord_tail)) / width < 0.7):
+            json_data['annotations'][index].update(side='left')
+        else:
+            json_data['annotations'][index].update(side='other')
+        # сохранить в новый файл
+        with open('labeled_data.json', 'w') as outfile:
+            json.dump(json_data, outfile)
+
 
 def main(json_path, images_path, id):
     with open(json_path) as f:
