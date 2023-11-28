@@ -1,0 +1,7 @@
+torch
+torchvision
+tqdm
+PyYAML
+scikit-learn
+matplotlib
+roboflow
