@@ -22,7 +22,7 @@ class CustomRandomCrop:
         return img.crop((left, top, right, bottom))
 
 train_transforms = transforms.Compose([
-        CustomRandomCrop(crop_percent=0.5),
+        transforms.RandomApply([CustomRandomCrop(crop_percent=0.6)], p=0.5),
         # transforms.RandomRotation(degrees = (-30, 30)),
 #         transforms.RandomPerspective(distortion_scale=0.3, p=0.5),
 #         transforms.RandomAffine(degrees=(-30, 30), translate=(0.1, 0.3), scale=(0.6, 0.8)),
